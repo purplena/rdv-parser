@@ -14,10 +14,12 @@ return [
     |
     */
 
-    'rdv_service_1' => [
-        'api_endpoint' => env('RDV_SERVICE_API_1'),
-        'center_id' => env('RDV_SERVICE_API_1_CENTERID'),
-        'speciality_id' => env('RDV_SERVICE_API_1_SPECIALITYID'),
+    'rdv_services' => [
+        'rdv_service_1' => [
+            'name' => env('RDV_SERVICE_1'),
+            'api_endpoint' => env('RDV_SERVICE_1_API'),
+            'center_id' => env('RDV_SERVICE_1_CENTERID'),
+            'speciality_id' => env('RDV_SERVICE_1_SPECIALITYID'),
+        ],
     ],
-
 ];
