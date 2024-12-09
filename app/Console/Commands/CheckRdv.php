@@ -23,7 +23,7 @@ class CheckRdv extends Command
      *
      * @var string
      */
-    protected $description = 'A description of the command';
+    protected $description = 'Check platform API for rdv availabilities and notify an end user by email if an availability is found';
 
     /**
      * Execute the console command.
@@ -36,10 +36,18 @@ class CheckRdv extends Command
     private function checkRdvAvailability(): void
     {
         $availabilityCount = $this->getApiResponse()->json('availabilityCount', 0);
+        $lastAvailability = RdvAvailability::latest()->first()->availbility_count;
 
         try {
-            if ($availabilityCount > 0) {
-                $this->generateEmail($availabilityCount);
+            if ($availabilityCount !== $lastAvailability) {
+                $this->registerAvailability(
+                    config('services.rdv_services.rdv_service_1.name'),
+                    $availabilityCount
+                );
+
+                if ($availabilityCount > 0) {
+                    $this->generateEmail($availabilityCount, config('services.rdv_services.rdv_service_1.link'));
+                }
             }
 
             $this->registerAvailability(
@@ -86,14 +94,14 @@ class CheckRdv extends Command
         ]);
     }
 
-    private function generateEmail($availabilityCount): void
+    private function generateEmail($availabilityCount, $link): void
     {
-        $to = config('mail.mailers.username');
-        $subject = 'RDV is now available!';
-        $body = "There are {$availabilityCount} new availabilities.";
-
-        Mail::raw($body, function ($message) use ($to, $subject) {
-            $message->to($to)->subject($subject);
+        Mail::send('emails.emailHtml', [
+            'availabilityCount' => $availabilityCount,
+            'link' => $link,
+        ], function ($message) {
+            $message->to(config('mail.mailers.username'))
+                ->subject('RDV is now available!');
         });
     }
 }
