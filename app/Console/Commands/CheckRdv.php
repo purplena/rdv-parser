@@ -49,6 +49,11 @@ class CheckRdv extends Command
                     $this->generateEmail($availabilityCount, config('services.rdv_services.rdv_service_1.link'));
                 }
             }
+
+            $this->registerAvailability(
+                config('services.rdv_services.rdv_service_1.name'),
+                $availabilityCount
+            );
         } catch (\Exception $e) {
             $this->registerError(
                 config('services.rdv_services.rdv_service_1.name'),
