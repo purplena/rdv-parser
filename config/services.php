@@ -20,6 +20,7 @@ return [
             'api_endpoint' => env('RDV_SERVICE_1_API'),
             'center_id' => env('RDV_SERVICE_1_CENTERID'),
             'speciality_id' => env('RDV_SERVICE_1_SPECIALITYID'),
+            'link' => env('RDV_SERVICE_1_LINK'),
         ],
     ],
 ];
