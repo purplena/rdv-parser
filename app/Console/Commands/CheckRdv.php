@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\RdvAvailability;
-use DateTime;
-use DateTimeZone;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
@@ -23,7 +23,7 @@ class CheckRdv extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'A description of the command';
 
     /**
      * Execute the console command.
@@ -35,22 +35,17 @@ class CheckRdv extends Command
 
     private function checkRdvAvailability(): void
     {
-        $data = $this->getApiResponse();
-        $availabilityCount = $data['availabilityCount'] ?? 0;
+        $availabilityCount = $this->getApiResponse()->json('availabilityCount', 0);
 
         try {
             if ($availabilityCount > 0) {
                 $this->generateEmail($availabilityCount);
-                $this->registerAvailability(
-                    config('services.rdv_services.rdv_service_1.name'),
-                    $availabilityCount
-                );
-            } else {
-                $this->registerAvailability(
-                    config('services.rdv_services.rdv_service_1.name'),
-                    $availabilityCount
-                );
             }
+
+            $this->registerAvailability(
+                config('services.rdv_services.rdv_service_1.name'),
+                $availabilityCount
+            );
         } catch (\Exception $e) {
             $this->registerError(
                 config('services.rdv_services.rdv_service_1.name'),
@@ -59,7 +54,7 @@ class CheckRdv extends Command
         }
     }
 
-    private function getApiResponse(): array
+    private function getApiResponse(): Response
     {
         return Http::get(config('services.rdv_services.rdv_service_1.api_endpoint'), [
             'centerId' => config('services.rdv_services.rdv_service_1.center_id'),
@@ -67,14 +62,12 @@ class CheckRdv extends Command
             'limit' => 200,
             'page' => 0,
             'specialityId' => config('services.rdv_services.rdv_service_1.speciality_id'),
-        ])->json();
+        ]);
     }
 
     private function generateTimestamps(): string
     {
-        $currentDate = new DateTime('now', new DateTimeZone('UTC'));
-
-        return $currentDate->format('Y-m-d\TH:i:s.v\Z');
+        return Carbon::now()->format('Y-m-d\TH:i:s.v\Z');
     }
 
     private function registerAvailability($seviceName, $availabilityCount): void
